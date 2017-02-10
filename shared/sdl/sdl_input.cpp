@@ -31,6 +31,7 @@ static SDL_Joystick *stick = NULL;
 
 static qboolean mouseAvailable = qfalse;
 static qboolean mouseActive = qfalse;
+static qboolean mouseGrab = qtrue;
 
 static cvar_t *in_mouse             = NULL;
 static cvar_t *in_nograb;
@@ -811,7 +812,17 @@ static void IN_ProcessEvents( void )
 					Sys_QueEvent( 0, SE_CHAR, CTRL('h'), qfalse, 0, NULL);
 				else if ( kg.keys[A_CTRL].down && key >= A_CAP_A && key <= A_CAP_Z )
 					Sys_QueEvent( 0, SE_CHAR, CTRL(tolower(key)), qfalse, 0, NULL );
-
+				if (kg.keys[A_CTRL].down && (key == A_CAP_G || key == A_LOW_G))
+				{
+					if (mouseGrab == qtrue)
+					{
+						mouseGrab = qfalse;
+					}
+					else
+					{
+						mouseGrab = qtrue;
+					}
+				}
 				lastKeyDown = key;
 				break;
 
@@ -901,15 +912,15 @@ static void IN_ProcessEvents( void )
 					case SDL_WINDOWEVENT_MAXIMIZED:    Cvar_SetValue( "com_minimized", 0 ); break;
 					case SDL_WINDOWEVENT_FOCUS_LOST:
 					{
-						Cvar_SetValue( "com_unfocused", 1 );
-						SNDDMA_Activate( qfalse );
+						//Cvar_SetValue( "com_unfocused", 1 );
+						//SNDDMA_Activate( qfalse );
 						break;
 					}
 
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
 					{
-						Cvar_SetValue( "com_unfocused", 0 );
-						SNDDMA_Activate( qtrue );
+						//Cvar_SetValue( "com_unfocused", 0 );
+						//SNDDMA_Activate( qtrue );
 						break;
 					}
 				}
@@ -1148,6 +1159,10 @@ void IN_Frame (void) {
 	{
 		// Window not got focus
 		IN_DeactivateMouse( );
+	}
+	else if (mouseGrab == qfalse)
+	{
+		IN_DeactivateMouse();
 	}
 	else
 		IN_ActivateMouse( );
